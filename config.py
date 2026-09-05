@@ -62,6 +62,7 @@ BACKTEST_SL_PIPS = 20
 BACKTEST_TP_PIPS = 20
 BACKTEST_MAX_HOLD_CANDLES = 100  # abandon du trade si ni SL ni TP touché après ça (≈8h en M5)
 
+
 # Intervalle entre chaque cycle d'analyse (en secondes)
 # En M5, on vérifie plus souvent qu'en M15 pour ne pas louper une bougie qui vient
 # de se fermer (le dédoublonnage dans signal_state.py évite les signaux répétés).
@@ -71,7 +72,9 @@ CHECK_INTERVAL = 60  # toutes les 1 minute
 # Rejette un signal ACHAT si le marché est sous sa tendance de fond baissière
 # (et inversement pour VENTE), en comparant le prix à une EMA longue sur une
 # timeframe supérieure. Réduit les faux signaux en marché sans direction claire.
-TREND_FILTER_ENABLED = True
+# Désactivé pour rester cohérent avec le backtest EMA/RSI et recevoir les
+# signaux dans les deux sens. À réactiver après un test séparé du filtre.
+TREND_FILTER_ENABLED = False
 TREND_TIMEFRAME = "H1"
 TREND_EMA_PERIOD = 200
 TREND_CANDLES_COUNT = 250
@@ -87,6 +90,22 @@ REQUIRE_PATTERN_CONFLUENCE = False
 # Abidjan est en UTC+0 toute l'année (pas de changement d'heure), ces bornes
 # correspondent directement à l'heure locale. Couvre la pré-ouverture de
 # Londres jusqu'à la clôture de New York.
-SESSION_FILTER_ENABLED = True
+# Désactivé pour ne pas supprimer les signaux générés hors session 07:00-21:00.
+# Le filtre peut être réactivé si l'analyse est limitée aux heures liquides.
+SESSION_FILTER_ENABLED = False
 SESSION_START_HOUR_UTC = 7
 SESSION_END_HOUR_UTC = 21
+
+# --- Calendrier économique ForexFactory ---
+# Informatif uniquement: les annonces n'empêchent jamais un signal.
+ECONOMIC_CALENDAR_ENABLED = True
+ECONOMIC_CALENDAR_URL = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
+ECONOMIC_CALENDAR_CACHE_SECONDS = 900
+ECONOMIC_CALENDAR_LOOKBACK_HOURS = 6
+ECONOMIC_CALENDAR_LOOKAHEAD_HOURS = 24
+
+# --- Analyse technique TradingView (complément non bloquant) ---
+TRADINGVIEW_ENABLED = True
+TRADINGVIEW_EXCHANGE = "FX_IDC"
+TRADINGVIEW_CACHE_SECONDS = 300
+TRADINGVIEW_TIMEOUT_SECONDS = 8

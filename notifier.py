@@ -256,6 +256,15 @@ def format_signal_message(signal: dict) -> str:
 
     trend_h1 = signal.get("trend_h1")
     trend_display = trend_h1 if trend_h1 else "N/A"
+    economic_bias = signal.get("economic_bias", "N/A")
+    economic_alignment = signal.get("economic_alignment", "N/A")
+    economic_events = signal.get("economic_events", [])
+    economic_note = signal.get("economic_note", "")
+    economic_display = " ; ".join(economic_events) if economic_events else "Aucune annonce proche"
+    tv_recommendation = signal.get("tradingview_recommendation", "N/A")
+    tv_alignment = signal.get("tradingview_alignment", "N/A")
+    tv_oscillators = signal.get("tradingview_oscillators", "N/A")
+    tv_moving_averages = signal.get("tradingview_moving_averages", "N/A")
 
     # --------------------------------------------------------
     # Volumes suggérés
@@ -333,6 +342,15 @@ def format_signal_message(signal: dict) -> str:
         + (f" {_escape_markdown_v2(confluence_display)}" if confluence_display else "")
         + f"\n"
         f"• Tendance {_escape_code(config.TREND_TIMEFRAME)} : `{_escape_code(trend_display)}`\n"
+        f"• Biais économique : `{_escape_code(economic_bias)}`\n"
+        f"• Alignement : `{_escape_code(economic_alignment)}`\n"
+        f"• Annonces : `{_escape_code(economic_display)}`\n"
+        f"• `{_escape_code(economic_note)}`\n"
+        f"\n"
+        f"📡 *TradingView*\n"
+        f"• Recommandation : `{_escape_code(tv_recommendation)}`\n"
+        f"• Alignement : `{_escape_code(tv_alignment)}`\n"
+        f"• Compteurs BUY/SELL : `{_escape_code(tv_oscillators)}` / `{_escape_code(tv_moving_averages)}`\n"
         f"\n"
         f"🕐 Bougie : `{_escape_code(candle_time)}`\n"
         f"\n"

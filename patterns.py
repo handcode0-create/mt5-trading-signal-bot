@@ -102,6 +102,29 @@ def detect_pattern(df: pd.DataFrame) -> str | None:
     return None
 
 
+def detect_pattern_at(df: pd.DataFrame, index: int) -> str | None:
+    """Détecte le pattern formé par la bougie à ``index`` sans regarder le futur."""
+    if index < 1 or index >= len(df):
+        return None
+
+    previous = df.iloc[index - 1]
+    last = df.iloc[index]
+    metrics = _candle_metrics(last)
+
+    if _is_bullish_engulfing(previous, last):
+        return "Engulfing haussier"
+    if _is_bearish_engulfing(previous, last):
+        return "Engulfing baissier"
+    if _is_hammer(metrics):
+        return "Marteau"
+    if _is_shooting_star(metrics):
+        return "Étoile filante"
+    if _is_doji(metrics):
+        return "Doji"
+
+    return None
+
+
 # Pattern haussiers vs baissiers, pour savoir si le pattern confirme ou contredit
 # le sens du signal EMA/RSI (utile pour juger de la "confluence").
 BULLISH_PATTERNS = {"Marteau", "Engulfing haussier"}

@@ -70,11 +70,11 @@ signaux avec confluence vs sans, comme dans ton journal de trading Excel.
 Trois filtres supplémentaires réduisent le nombre de faux signaux, réglables
 dans `config.py` :
 
-- **`SESSION_FILTER_ENABLED`** (défaut `True`) : n'analyse les marchés que
+- **`SESSION_FILTER_ENABLED`** (défaut `False`) : n'analyse les marchés que
   pendant les heures de forte liquidité (`SESSION_START_HOUR_UTC` →
   `SESSION_END_HOUR_UTC`, en UTC = heure d'Abidjan toute l'année). Hors
   session, les mouvements sont souvent erratiques et peu fiables.
-- **`TREND_FILTER_ENABLED`** (défaut `True`) : rejette un signal ACHAT si le
+- **`TREND_FILTER_ENABLED`** (défaut `False`) : rejette un signal ACHAT si le
   marché est sous sa tendance de fond (EMA `TREND_EMA_PERIOD` sur
   `TREND_TIMEFRAME`, ex: EMA200 en H1), et inversement pour VENTE. Évite de
   trader à contre-tendance. Le résultat (`HAUSSIER`/`BAISSIER`) est affiché
@@ -88,9 +88,54 @@ dans `config.py` :
 Ces filtres réduisent mécaniquement le nombre de signaux envoyés — c'est
 voulu : l'objectif est un meilleur taux de réussite, pas plus de volume.
 
+### Calendrier économique ForexFactory
+
+Le bot récupère facultativement les annonces à impact moyen/fort via le flux
+ForexFactory. Les événements des devises de la paire, publiés récemment ou
+prévus dans les 24 prochaines heures, sont ajoutés au message Telegram avec un
+biais indicatif (`HAUSSIER`, `BAISSIER` ou `NEUTRE`). Ce contexte ne bloque
+aucun signal et ne remplace pas l'analyse du marché. Le flux est mis en cache
+15 minutes; si le site est indisponible, le signal technique continue de partir.
+
+### Analyse TradingView
+
+Chaque signal peut aussi inclure la recommandation TradingView (`BUY`, `SELL`
+ou `NEUTRAL`) et les compteurs BUY/SELL de son résumé technique, sur le même
+timeframe que le bot. Cette donnée est une confirmation externe, non un filtre:
+elle ne bloque aucun signal. La bibliothèque `tradingview-ta` interroge un
+service non officiel; si ce service échoue, le message indique `N/A` et le bot
+continue avec MT5.
+
+## Backtest historique MT5
+
+Le backtester utilise les bougies historiques réelles du terminal MT5 et simule
+le SL/TP dynamique basé sur l'ATR. Le spread de chaque bougie est également
+lu dans le champ `spread` fourni par MT5, puis converti en pips avec le `point`
+réel du symbole. Le coût historique est donc dynamique selon l'heure et la
+liquidité, sans valeur fixe dans la configuration. Le résumé affiche BRUT et
+NET côte à côte; le CSV conserve le spread appliqué à chaque trade.
+
+```bash
+# Test rapide sur le timeframe configuré
+python backtest.py --months 6
+
+# Comparaison des 12 symboles sur plusieurs timeframes
+python backtest.py --months 6 --timeframes M5 M15 M30 H1 H4 D1
+
+# Sous-ensemble utile pour un contrôle ciblé
+python backtest.py --months 12 --timeframes H1 H4 --symbols EURUSDm XAUUSDm
+```
+
+Le résumé affiche le taux de réussite, le profit factor, l'espérance et les
+pips totaux par timeframe, symbole et statut de pattern. `confluence` désigne
+un pattern dans le même sens que le signal; `contradiction` le sens opposé;
+`sans_confluence` inclut l'absence de pattern et le Doji. Compare surtout
+l'espérance et le profit factor, avec le nombre de trades, avant d'activer un
+filtre de confluence.
+
 ## Prochaines étapes possibles
 
-- [ ] Backtester la stratégie sur données historiques avant de s'y fier
+- [x] Backtester la stratégie sur données historiques avant de s'y fier
 - [ ] Ajouter d'autres indicateurs / filtres (ATR pour le stop loss, structure de marché...)
 - [ ] Ajouter un mode "confirmation manuelle" via boutons Telegram (inline keyboard)
 - [x] Logger tous les signaux dans un fichier/CSV pour analyser la performance réelle

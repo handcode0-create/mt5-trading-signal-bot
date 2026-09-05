@@ -31,6 +31,8 @@ import pandas_ta as ta
 import config
 from position_sizing import suggest_position_sizes
 from patterns import detect_pattern, pattern_confluence
+from economic_calendar import get_calendar_context
+from tradingview_analysis import get_tradingview_context
 
 
 logger = logging.getLogger(__name__)
@@ -927,6 +929,30 @@ def analyze_symbol(
 
     if signal is None:
         return None
+
+    # Le calendrier enrichit le signal mais ne le bloque jamais.
+    economic_context = get_calendar_context(symbol)
+    signal.update(economic_context)
+    if economic_context["economic_bias"] == "NEUTRE":
+        signal["economic_alignment"] = "neutre"
+    elif (
+        economic_context["economic_bias"] == "HAUSSIER"
+        and signal["direction"] == "ACHAT"
+    ) or (
+        economic_context["economic_bias"] == "BAISSIER"
+        and signal["direction"] == "VENTE"
+    ):
+        signal["economic_alignment"] = "favorable"
+    else:
+        signal["economic_alignment"] = "contraire"
+
+        signal.update(
+            get_tradingview_context(
+                symbol,
+                config.TIMEFRAME,
+                signal["direction"],
+            )
+        )
 
     # --------------------------------------------------------
     # Confluence de pattern obligatoire (optionnel, désactivé

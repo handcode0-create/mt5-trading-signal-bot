@@ -3,3 +3,4 @@ pandas
 pandas-ta
 requests
 python-dotenv
+tradingview-ta
