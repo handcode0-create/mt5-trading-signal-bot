@@ -957,13 +957,17 @@ def analyze_symbol(
     else:
         signal["economic_alignment"] = "contraire"
 
-        signal.update(
-            get_tradingview_context(
-                symbol,
-                config.TIMEFRAME,
-                signal["direction"],
-            )
+    # NOTE : cet appel doit rester en dehors du bloc if/elif/else
+    # ci-dessus — sinon TradingView n'est interrogé que lorsque le
+    # biais économique est "contraire", ce qui le rend silencieux
+    # dans la majorité des cas (bug corrigé ici).
+    signal.update(
+        get_tradingview_context(
+            symbol,
+            config.TIMEFRAME,
+            signal["direction"],
         )
+    )
 
     # --------------------------------------------------------
     # Confluence de pattern obligatoire (optionnel, désactivé
