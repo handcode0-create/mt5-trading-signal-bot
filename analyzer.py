@@ -266,6 +266,17 @@ def get_symbol_info(symbol: str):
             )
             return None
 
+    unavailable_modes = {
+        mt5.SYMBOL_TRADE_MODE_DISABLED,
+        mt5.SYMBOL_TRADE_MODE_CLOSEONLY,
+    }
+    if info.trade_mode in unavailable_modes:
+        logger.warning(
+            "Symbole '%s' non ouvrable chez le broker (mode=%s), ignoré.",
+            symbol, info.trade_mode,
+        )
+        return None
+
     return info
 
 

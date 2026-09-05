@@ -30,6 +30,20 @@ RESULTS_FILE = "backtest_results.csv"
 
 def pip_size(symbol: str) -> float:
     """Taille d'un pip selon le type d'actif (approximatif mais suffisant pour ce backtest)."""
+    crypto_pips = {
+        "BCHUSDm": 0.01,
+        "BTCJPYm": 1.0,
+        "BTCKRWm": 1.0,
+        "BTCUSDm": 1.0,
+        "ETHUSDm": 0.1,
+        "LTCUSDm": 0.01,
+        "XRPUSDm": 0.0001,
+        "ADAUSDm": 0.0001,
+        "BATUSDm": 0.0001,
+        "LINKUSDm": 0.01,
+    }
+    if symbol in crypto_pips:
+        return crypto_pips[symbol]
     if "JPY" in symbol:
         return 0.01
     if symbol.upper().startswith("XAU"):
@@ -50,6 +64,12 @@ def fetch_historical(symbol: str, timeframe: str, months: int) -> pd.DataFrame |
     info = mt5.symbol_info(symbol)
     if info is None:
         logger.warning("Symbole '%s' introuvable, ignoré.", symbol)
+        return None
+    if info.trade_mode in {
+        mt5.SYMBOL_TRADE_MODE_DISABLED,
+        mt5.SYMBOL_TRADE_MODE_CLOSEONLY,
+    }:
+        logger.warning("Symbole '%s' non ouvrable chez le broker, ignoré.", symbol)
         return None
     if not info.visible:
         mt5.symbol_select(symbol, True)

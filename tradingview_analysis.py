@@ -45,6 +45,8 @@ def _source(symbol: str) -> tuple[str, str]:
     clean_symbol = symbol.upper().removesuffix("M")
     if clean_symbol.startswith(("XAU", "XAG")):
         return clean_symbol, "cfd"
+    if clean_symbol.startswith(("BCH", "BTC", "ETH", "LTC", "XRP", "ADA", "BAT", "LINK")):
+        return clean_symbol, "crypto"
     return clean_symbol, "forex"
 
 
@@ -71,7 +73,11 @@ def get_tradingview_context(symbol: str, timeframe: str, direction: str) -> dict
                 handler = TA_Handler(
                     symbol=tv_symbol,
                     screener=screener,
-                    exchange=config.TRADINGVIEW_EXCHANGE,
+                    exchange=(
+                        config.TRADINGVIEW_CRYPTO_EXCHANGE
+                        if screener == "crypto"
+                        else config.TRADINGVIEW_EXCHANGE
+                    ),
                     interval=getattr(Interval, interval_name),
                     timeout=config.TRADINGVIEW_TIMEOUT_SECONDS,
                 )

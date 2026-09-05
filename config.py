@@ -32,6 +32,9 @@ SYMBOLS = [
     "GBPJPYm",
     "XAUUSDm",  # or
     "XAGUSDm",  # argent
+    # Cryptomonnaies actuellement ouvrables chez Exness
+    "BTCUSDm",
+    "ETHUSDm",
 ]  # paires à surveiller
 TIMEFRAME = "M5"  # M1, M5, M15, M30, H1, H4, D1
 
@@ -107,5 +110,6 @@ ECONOMIC_CALENDAR_LOOKAHEAD_HOURS = 24
 # --- Analyse technique TradingView (complément non bloquant) ---
 TRADINGVIEW_ENABLED = True
 TRADINGVIEW_EXCHANGE = "FX_IDC"
+TRADINGVIEW_CRYPTO_EXCHANGE = "BINANCE"
 TRADINGVIEW_CACHE_SECONDS = 300
 TRADINGVIEW_TIMEOUT_SECONDS = 8

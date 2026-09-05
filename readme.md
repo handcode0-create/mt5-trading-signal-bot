@@ -33,6 +33,12 @@ Modifie `config.py` selon tes besoins :
 - `EMA_FAST` / `EMA_SLOW` / `RSI_PERIOD` : paramètres des indicateurs
 - `CHECK_INTERVAL` : fréquence d'analyse en secondes
 
+La liste inclut aussi les crypto actuellement ouvrables dans ce compte Exness :
+`BTCUSDm` et `ETHUSDm`. Les autres crypto visibles dans la Market Watch peuvent
+être désactivées ou en clôture uniquement; le moteur vérifie automatiquement le
+mode de trading MT5 avant de produire un signal. Le suffixe `m` est spécifique
+au broker.
+
 ## Lancer le bot
 
 ```bash
