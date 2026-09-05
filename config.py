@@ -76,8 +76,9 @@ CHECK_INTERVAL = 60  # toutes les 1 minute
 # (et inversement pour VENTE), en comparant le prix à une EMA longue sur une
 # timeframe supérieure. Réduit les faux signaux en marché sans direction claire.
 # Désactivé pour rester cohérent avec le backtest EMA/RSI et recevoir les
-# signaux dans les deux sens. À réactiver après un test séparé du filtre.
-TREND_FILTER_ENABLED = False
+# signaux dans les deux sens. Réactivé le 05/09 : Smith veut le filtre de
+# tendance actif pour plus d'assurance sur les signaux.
+TREND_FILTER_ENABLED = True
 TREND_TIMEFRAME = "H1"
 TREND_EMA_PERIOD = 200
 TREND_CANDLES_COUNT = 250
@@ -113,3 +114,20 @@ TRADINGVIEW_EXCHANGE = "FX_IDC"
 TRADINGVIEW_CRYPTO_EXCHANGE = "BINANCE"
 TRADINGVIEW_CACHE_SECONDS = 300
 TRADINGVIEW_TIMEOUT_SECONDS = 8
+
+# --- Analyse multi-timeframe (confluence informative, non bloquante) ---
+# Calcule le biais EMA9/EMA21 sur chacune de ces timeframes et affiche
+# combien sont d'accord avec le sens du signal (ex: "3/3" = les 3 timeframes
+# vont dans le même sens que le signal M5 = plus de confiance).
+MTF_ENABLED = True
+MTF_TIMEFRAMES = ["M5", "M15", "H1"]
+
+# --- Retracements de Fibonacci (confluence informative, non bloquante) ---
+# Calcule les niveaux de Fibonacci (23.6%, 38.2%, 50%, 61.8%, 78.6%) à partir
+# du plus haut/plus bas des FIBONACCI_SWING_CANDLES dernières bougies clôturées,
+# et indique si le prix d'entrée est proche d'un niveau clé (souvent une zone
+# de rebond/rejet). FIBONACCI_PROXIMITY_RATIO = fraction du swing total
+# considérée comme "proche" (0.1 = 10% du swing).
+FIBONACCI_ENABLED = True
+FIBONACCI_SWING_CANDLES = 50
+FIBONACCI_PROXIMITY_RATIO = 0.1

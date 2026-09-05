@@ -53,6 +53,9 @@ FIELDNAMES = [
     "pattern",
     "pattern_confluence",
     "trend_h1",
+    "mtf_alignment",
+    "fib_level",
+    "fib_near",
     "price_after",
     "pips_change",
     "result",
@@ -609,6 +612,18 @@ def _build_row(
 
         "trend_h1": _safe_value(
             signal.get("trend_h1")
+        ),
+
+        "mtf_alignment": _safe_value(
+            signal.get("mtf_alignment")
+        ),
+
+        "fib_level": _safe_value(
+            signal.get("fib_level")
+        ),
+
+        "fib_near": bool(
+            signal.get("fib_near", False)
         ),
 
         # Ces valeurs seront renseignées plus tard

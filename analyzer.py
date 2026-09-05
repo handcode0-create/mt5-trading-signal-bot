@@ -33,6 +33,7 @@ from position_sizing import suggest_position_sizes
 from patterns import detect_pattern, pattern_confluence
 from economic_calendar import get_calendar_context
 from tradingview_analysis import get_tradingview_context
+from fibonacci import compute_fibonacci_levels, nearest_fib_level
 
 
 logger = logging.getLogger(__name__)
@@ -591,6 +592,78 @@ def get_trend_direction(
 
 
 # ============================================================
+# ANALYSE MULTI-TIMEFRAME (confluence informative)
+# ============================================================
+
+def get_multi_timeframe_bias(symbol: str) -> dict:
+    """
+    Calcule le biais EMA9/EMA21 (HAUSSIER si EMA rapide > EMA lente,
+    BAISSIER sinon) sur chacune des timeframes de config.MTF_TIMEFRAMES,
+    à partir de la dernière bougie CLÔTURÉE de chaque timeframe.
+
+    Retourne un dict {timeframe: "HAUSSIER"|"BAISSIER"|None}. None signifie
+    que les données n'étaient pas disponibles ou insuffisantes pour ce
+    timeframe (ex: erreur MT5, symbole indisponible sur cette période).
+    """
+    biases: dict = {}
+
+    for tf in config.MTF_TIMEFRAMES:
+        df = fetch_candles(
+            symbol=symbol,
+            timeframe=tf,
+            count=config.CANDLES_COUNT,
+        )
+
+        if df is None or len(df) < config.EMA_SLOW + 3:
+            biases[tf] = None
+            continue
+
+        df["ema_fast"] = ta.ema(df["close"], length=config.EMA_FAST)
+        df["ema_slow"] = ta.ema(df["close"], length=config.EMA_SLOW)
+
+        last = df.iloc[-2]
+        fast = last.get("ema_fast")
+        slow = last.get("ema_slow")
+
+        try:
+            fast = float(fast)
+            slow = float(slow)
+        except (TypeError, ValueError):
+            biases[tf] = None
+            continue
+
+        if not (math.isfinite(fast) and math.isfinite(slow)):
+            biases[tf] = None
+            continue
+
+        biases[tf] = "HAUSSIER" if fast > slow else "BAISSIER"
+
+    return biases
+
+
+def summarize_mtf(biases: dict, direction: str) -> dict:
+    """
+    Résume l'alignement multi-timeframe par rapport au sens du signal :
+    combien de timeframes (parmi celles avec des données valides) vont
+    dans le même sens que le signal détecté sur la timeframe principale.
+    """
+    target_bias = "HAUSSIER" if direction == "ACHAT" else "BAISSIER"
+
+    valid = {tf: bias for tf, bias in biases.items() if bias is not None}
+    aligned = sum(1 for bias in valid.values() if bias == target_bias)
+    total = len(valid)
+
+    detail = " / ".join(
+        f"{tf}:{biases.get(tf) or 'N/A'}" for tf in config.MTF_TIMEFRAMES
+    )
+
+    return {
+        "mtf_alignment": f"{aligned}/{total}" if total else "N/A",
+        "mtf_detail": detail,
+    }
+
+
+# ============================================================
 # DÉTECTION DU SIGNAL
 # ============================================================
 
@@ -968,6 +1041,28 @@ def analyze_symbol(
             signal["direction"],
         )
     )
+
+    # --------------------------------------------------------
+    # Analyse multi-timeframe (informatif, ne bloque jamais)
+    # --------------------------------------------------------
+
+    if config.MTF_ENABLED:
+        biases = get_multi_timeframe_bias(symbol)
+        signal.update(summarize_mtf(biases, signal["direction"]))
+
+    # --------------------------------------------------------
+    # Retracements de Fibonacci (informatif, ne bloque jamais)
+    # --------------------------------------------------------
+
+    if config.FIBONACCI_ENABLED:
+        fib_data = compute_fibonacci_levels(df, config.FIBONACCI_SWING_CANDLES)
+        signal.update(
+            nearest_fib_level(
+                signal["price"],
+                fib_data,
+                config.FIBONACCI_PROXIMITY_RATIO,
+            )
+        )
 
     # --------------------------------------------------------
     # Confluence de pattern obligatoire (optionnel, désactivé

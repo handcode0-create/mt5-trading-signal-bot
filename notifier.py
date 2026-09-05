@@ -265,6 +265,12 @@ def format_signal_message(signal: dict) -> str:
     tv_alignment = signal.get("tradingview_alignment", "N/A")
     tv_oscillators = signal.get("tradingview_oscillators", "N/A")
     tv_moving_averages = signal.get("tradingview_moving_averages", "N/A")
+    mtf_alignment = signal.get("mtf_alignment", "N/A")
+    mtf_detail = signal.get("mtf_detail", "N/A")
+    fib_level = signal.get("fib_level")
+    fib_display = fib_level if fib_level else "N/A"
+    fib_near = signal.get("fib_near", False)
+    fib_note = signal.get("fib_note", "")
 
     # --------------------------------------------------------
     # Volumes suggérés
@@ -351,6 +357,16 @@ def format_signal_message(signal: dict) -> str:
         f"• Recommandation : `{_escape_code(tv_recommendation)}`\n"
         f"• Alignement : `{_escape_code(tv_alignment)}`\n"
         f"• Compteurs BUY/SELL : `{_escape_code(tv_oscillators)}` / `{_escape_code(tv_moving_averages)}`\n"
+        f"\n"
+        f"⏱️ *Multi\\-timeframe*\n"
+        f"• Alignement : `{_escape_code(mtf_alignment)}`\n"
+        f"• Détail : `{_escape_code(mtf_detail)}`\n"
+        f"\n"
+        f"📐 *Fibonacci*\n"
+        f"• Niveau proche : `{_escape_code(fib_display)}`"
+        + (" ✅" if fib_near else "")
+        + f"\n"
+        f"• `{_escape_code(fib_note)}`\n"
         f"\n"
         f"🕐 Bougie : `{_escape_code(candle_time)}`\n"
         f"\n"
