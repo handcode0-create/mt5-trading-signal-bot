@@ -141,6 +141,16 @@ def _escape_markdown_v2(text: Any) -> str:
     return text
 
 
+def escape_text(text: Any) -> str:
+    """
+    Version publique de l'échappement MarkdownV2, à utiliser pour tout
+    message texte brut envoyé via send_telegram_message() (ex: messages
+    de démarrage/arrêt du bot dans main.py), qui ne passe pas par
+    format_signal_message() et n'est donc pas déjà échappé.
+    """
+    return _escape_markdown_v2(text)
+
+
 def _escape_code(text: Any) -> str:
     """
     Prépare une valeur destinée à être affichée

@@ -12,7 +12,7 @@ import time
 
 import config
 from analyzer import connect_mt5, shutdown_mt5, ensure_connection, analyze_symbol
-from notifier import notify_signal, send_telegram_message
+from notifier import notify_signal, send_telegram_message, escape_text
 from signal_logger import log_signal
 from signal_state import is_new_signal
 
@@ -48,7 +48,7 @@ def main():
         logger.error("Impossible de se connecter à MT5. Arrêt du bot.")
         return
 
-    send_telegram_message("🤖 Bot de signaux démarré. Surveillance en cours...")
+    send_telegram_message(escape_text("🤖 Bot de signaux démarré. Surveillance en cours..."))
     logger.info("Bot démarré. Symboles surveillés : %s", config.SYMBOLS)
 
     try:
@@ -59,7 +59,7 @@ def main():
         logger.info("Arrêt demandé par l'utilisateur.")
     finally:
         shutdown_mt5()
-        send_telegram_message("🛑 Bot de signaux arrêté.")
+        send_telegram_message(escape_text("🛑 Bot de signaux arrêté."))
 
 
 if __name__ == "__main__":
