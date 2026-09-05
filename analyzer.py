@@ -30,6 +30,7 @@ import pandas_ta as ta
 
 import config
 from position_sizing import suggest_position_sizes
+from patterns import detect_pattern, pattern_confluence
 
 
 logger = logging.getLogger(__name__)
@@ -651,6 +652,13 @@ def detect_signal(
     )
 
     # --------------------------------------------------------
+    # Pattern de chandelier (confluence, n'influence pas la
+    # détection du signal, juste une info supplémentaire)
+    # --------------------------------------------------------
+
+    pattern = detect_pattern(df)
+
+    # --------------------------------------------------------
     # SIGNAL ACHAT
     # --------------------------------------------------------
 
@@ -683,6 +691,8 @@ def detect_signal(
             ),
             "risk_reward": risk_reward,
             "time": last["time"],
+            "pattern": pattern,
+            "pattern_confluence": pattern_confluence(pattern, "ACHAT"),
         }
 
         logger.info(
@@ -732,6 +742,8 @@ def detect_signal(
             ),
             "risk_reward": risk_reward,
             "time": last["time"],
+            "pattern": pattern,
+            "pattern_confluence": pattern_confluence(pattern, "VENTE"),
         }
 
         logger.info(

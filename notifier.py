@@ -237,6 +237,13 @@ def format_signal_message(signal: dict) -> str:
         signal.get("time")
     )
 
+    pattern = signal.get("pattern")
+    pattern_display = pattern if pattern else "Aucun"
+    pattern_confluence = signal.get("pattern_confluence", False)
+    confluence_display = "✅ confluence" if (pattern and pattern_confluence) else (
+        "⚠️ sens opposé" if pattern else ""
+    )
+
     # --------------------------------------------------------
     # Volumes suggérés
     # --------------------------------------------------------
@@ -307,6 +314,11 @@ def format_signal_message(signal: dict) -> str:
         f"📈 *Indicateurs*\n"
         f"• RSI : `{_escape_code(rsi)}`\n"
         f"• ATR : `{_escape_code(atr)}`\n"
+        f"\n"
+        f"🕯️ *Pattern*\n"
+        f"• Figure : `{_escape_code(pattern_display)}`"
+        + (f" {_escape_markdown_v2(confluence_display)}" if confluence_display else "")
+        + f"\n"
         f"\n"
         f"🕐 Bougie : `{_escape_code(candle_time)}`\n"
         f"\n"

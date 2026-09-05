@@ -50,6 +50,8 @@ FIELDNAMES = [
     "volume_1pct",
     "volume_2pct",
     "rsi",
+    "pattern",
+    "pattern_confluence",
     "price_after",
     "pips_change",
     "result",
@@ -263,6 +265,8 @@ def _migrate_csv_file() -> None:
             volume_1pct
             volume_2pct
             rsi
+            pattern
+            pattern_confluence
             price_after
             pips_change
             result
@@ -592,6 +596,14 @@ def _build_row(
 
         "rsi": _safe_float(
             signal.get("rsi")
+        ),
+
+        "pattern": _safe_value(
+            signal.get("pattern")
+        ),
+
+        "pattern_confluence": bool(
+            signal.get("pattern_confluence", False)
         ),
 
         # Ces valeurs seront renseignées plus tard

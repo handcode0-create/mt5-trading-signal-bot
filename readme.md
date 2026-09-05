@@ -51,6 +51,20 @@ Arrête-le avec `Ctrl+C`.
 
 C'est volontairement simple pour avoir une base solide à tester et améliorer.
 
+### Détection de patterns de chandeliers (confluence)
+
+Chaque signal EMA/RSI est désormais enrichi d'une détection de figure de chandelier
+sur la dernière bougie clôturée (`patterns.py`) : Doji, Marteau, Étoile filante,
+Engulfing haussier/baissier. Ce n'est **pas** un filtre qui bloque le signal — le
+pattern est juste affiché en plus, avec un tag :
+
+- ✅ *confluence* : le pattern va dans le même sens que le signal (ex: Marteau + ACHAT)
+- ⚠️ *sens opposé* : le pattern détecté contredit le signal — sois plus prudent
+
+Ces infos sont aussi loggées dans `signals_log.csv` (colonnes `pattern` et
+`pattern_confluence`) pour pouvoir comparer plus tard le taux de réussite des
+signaux avec confluence vs sans, comme dans ton journal de trading Excel.
+
 ## Prochaines étapes possibles
 
 - [ ] Backtester la stratégie sur données historiques avant de s'y fier
