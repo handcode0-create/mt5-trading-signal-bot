@@ -22,7 +22,7 @@ import time
 
 from typing import Optional
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 import MetaTrader5 as mt5
 import pandas as pd
@@ -496,6 +496,88 @@ def _valid_indicator_values(
 
 
 # ============================================================
+# FILTRE DE SESSION (heures de forte liquidité)
+# ============================================================
+
+def is_within_trading_session() -> bool:
+    """
+    Vérifie si l'heure actuelle (UTC) est dans la plage de session
+    configurée (config.SESSION_START_HOUR_UTC -> SESSION_END_HOUR_UTC).
+
+    Abidjan étant en UTC+0 toute l'année, ces bornes correspondent
+    directement à l'heure locale ivoirienne.
+    """
+
+    if not config.SESSION_FILTER_ENABLED:
+        return True
+
+    current_hour = datetime.now(timezone.utc).hour
+
+    return config.SESSION_START_HOUR_UTC <= current_hour < config.SESSION_END_HOUR_UTC
+
+
+# ============================================================
+# FILTRE DE TENDANCE DE FOND (timeframe supérieure)
+# ============================================================
+
+def get_trend_direction(
+    symbol: str,
+) -> Optional[str]:
+    """
+    Détermine la tendance de fond sur une timeframe supérieure
+    (config.TREND_TIMEFRAME) à partir de la position du prix de
+    clôture par rapport à une EMA longue (config.TREND_EMA_PERIOD).
+
+    Retourne "HAUSSIER", "BAISSIER", ou None si indéterminable
+    (pas assez de données, ou erreur MT5).
+    """
+
+    df = fetch_candles(
+        symbol=symbol,
+        timeframe=config.TREND_TIMEFRAME,
+        count=config.TREND_CANDLES_COUNT,
+    )
+
+    if df is None or len(df) < config.TREND_EMA_PERIOD + 3:
+        logger.debug(
+            "%s : pas assez de données sur %s pour le filtre de tendance.",
+            symbol,
+            config.TREND_TIMEFRAME,
+        )
+        return None
+
+    df["trend_ema"] = ta.ema(
+        df["close"],
+        length=config.TREND_EMA_PERIOD,
+    )
+
+    # Dernière bougie clôturée (la dernière ligne est en formation).
+    last = df.iloc[-2]
+
+    trend_ema = last.get("trend_ema")
+    close = last.get("close")
+
+    if trend_ema is None or close is None:
+        return None
+
+    try:
+        trend_ema = float(trend_ema)
+        close = float(close)
+    except (TypeError, ValueError):
+        return None
+
+    if not math.isfinite(trend_ema):
+        return None
+
+    if close > trend_ema:
+        return "HAUSSIER"
+    if close < trend_ema:
+        return "BAISSIER"
+
+    return None
+
+
+# ============================================================
 # DÉTECTION DU SIGNAL
 # ============================================================
 
@@ -786,6 +868,18 @@ def analyze_symbol(
         )
         return None
 
+    # --------------------------------------------------------
+    # Filtre de session (évite d'analyser hors des heures de
+    # forte liquidité, où les faux signaux sont plus fréquents)
+    # --------------------------------------------------------
+
+    if not is_within_trading_session():
+        logger.debug(
+            "%s : hors session de trading configurée, analyse ignorée.",
+            symbol,
+        )
+        return None
+
     if not ensure_connection():
         logger.error(
             "Impossible d'analyser %s : MT5 non connecté.",
@@ -833,6 +927,46 @@ def analyze_symbol(
 
     if signal is None:
         return None
+
+    # --------------------------------------------------------
+    # Confluence de pattern obligatoire (optionnel, désactivé
+    # par défaut — voir config.REQUIRE_PATTERN_CONFLUENCE)
+    # --------------------------------------------------------
+
+    if config.REQUIRE_PATTERN_CONFLUENCE and not signal.get("pattern_confluence"):
+        logger.info(
+            "%s : signal %s rejeté (pas de confluence de pattern, "
+            "pattern=%s).",
+            symbol,
+            signal["direction"],
+            signal.get("pattern"),
+        )
+        return None
+
+    # --------------------------------------------------------
+    # Filtre de tendance de fond (timeframe supérieure)
+    # --------------------------------------------------------
+
+    if config.TREND_FILTER_ENABLED:
+        trend = get_trend_direction(symbol)
+
+        if trend == "BAISSIER" and signal["direction"] == "ACHAT":
+            logger.info(
+                "%s : signal ACHAT rejeté, tendance de fond baissière sur %s.",
+                symbol,
+                config.TREND_TIMEFRAME,
+            )
+            return None
+
+        if trend == "HAUSSIER" and signal["direction"] == "VENTE":
+            logger.info(
+                "%s : signal VENTE rejeté, tendance de fond haussière sur %s.",
+                symbol,
+                config.TREND_TIMEFRAME,
+            )
+            return None
+
+        signal["trend_h1"] = trend
 
     # --------------------------------------------------------
     # Informations générales du signal

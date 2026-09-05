@@ -52,6 +52,7 @@ FIELDNAMES = [
     "rsi",
     "pattern",
     "pattern_confluence",
+    "trend_h1",
     "price_after",
     "pips_change",
     "result",
@@ -604,6 +605,10 @@ def _build_row(
 
         "pattern_confluence": bool(
             signal.get("pattern_confluence", False)
+        ),
+
+        "trend_h1": _safe_value(
+            signal.get("trend_h1")
         ),
 
         # Ces valeurs seront renseignées plus tard

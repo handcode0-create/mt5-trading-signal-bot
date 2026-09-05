@@ -65,6 +65,29 @@ Ces infos sont aussi loggées dans `signals_log.csv` (colonnes `pattern` et
 `pattern_confluence`) pour pouvoir comparer plus tard le taux de réussite des
 signaux avec confluence vs sans, comme dans ton journal de trading Excel.
 
+### Filtres de rentabilité (session, tendance, confluence)
+
+Trois filtres supplémentaires réduisent le nombre de faux signaux, réglables
+dans `config.py` :
+
+- **`SESSION_FILTER_ENABLED`** (défaut `True`) : n'analyse les marchés que
+  pendant les heures de forte liquidité (`SESSION_START_HOUR_UTC` →
+  `SESSION_END_HOUR_UTC`, en UTC = heure d'Abidjan toute l'année). Hors
+  session, les mouvements sont souvent erratiques et peu fiables.
+- **`TREND_FILTER_ENABLED`** (défaut `True`) : rejette un signal ACHAT si le
+  marché est sous sa tendance de fond (EMA `TREND_EMA_PERIOD` sur
+  `TREND_TIMEFRAME`, ex: EMA200 en H1), et inversement pour VENTE. Évite de
+  trader à contre-tendance. Le résultat (`HAUSSIER`/`BAISSIER`) est affiché
+  dans le message Telegram et loggé dans le CSV (`trend_h1`).
+- **`REQUIRE_PATTERN_CONFLUENCE`** (défaut `False`) : si activé, un signal
+  SANS confluence de pattern de chandelier est rejeté au lieu d'être juste
+  affiché avec un avertissement. À activer seulement après avoir vérifié,
+  via le journal, que la confluence améliore vraiment le taux de réussite —
+  pas de raison de couper des signaux sur une hypothèse non testée.
+
+Ces filtres réduisent mécaniquement le nombre de signaux envoyés — c'est
+voulu : l'objectif est un meilleur taux de réussite, pas plus de volume.
+
 ## Prochaines étapes possibles
 
 - [ ] Backtester la stratégie sur données historiques avant de s'y fier

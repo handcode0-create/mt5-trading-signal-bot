@@ -254,6 +254,9 @@ def format_signal_message(signal: dict) -> str:
         "⚠️ sens opposé" if pattern else ""
     )
 
+    trend_h1 = signal.get("trend_h1")
+    trend_display = trend_h1 if trend_h1 else "N/A"
+
     # --------------------------------------------------------
     # Volumes suggérés
     # --------------------------------------------------------
@@ -329,6 +332,7 @@ def format_signal_message(signal: dict) -> str:
         f"• Figure : `{_escape_code(pattern_display)}`"
         + (f" {_escape_markdown_v2(confluence_display)}" if confluence_display else "")
         + f"\n"
+        f"• Tendance {_escape_code(config.TREND_TIMEFRAME)} : `{_escape_code(trend_display)}`\n"
         f"\n"
         f"🕐 Bougie : `{_escape_code(candle_time)}`\n"
         f"\n"

@@ -66,3 +66,27 @@ BACKTEST_MAX_HOLD_CANDLES = 100  # abandon du trade si ni SL ni TP touché aprè
 # En M5, on vérifie plus souvent qu'en M15 pour ne pas louper une bougie qui vient
 # de se fermer (le dédoublonnage dans signal_state.py évite les signaux répétés).
 CHECK_INTERVAL = 60  # toutes les 1 minute
+
+# --- Filtre de tendance de fond (évite de trader à contre-tendance) ---
+# Rejette un signal ACHAT si le marché est sous sa tendance de fond baissière
+# (et inversement pour VENTE), en comparant le prix à une EMA longue sur une
+# timeframe supérieure. Réduit les faux signaux en marché sans direction claire.
+TREND_FILTER_ENABLED = True
+TREND_TIMEFRAME = "H1"
+TREND_EMA_PERIOD = 200
+TREND_CANDLES_COUNT = 250
+
+# --- Confluence de pattern de chandelier obligatoire ---
+# False (par défaut) : le pattern est affiché à titre indicatif seulement.
+# True : un signal SANS confluence de pattern est rejeté (plus strict, moins
+# de signaux, mais activer seulement après avoir vérifié via le journal que
+# la confluence améliore vraiment le taux de réussite).
+REQUIRE_PATTERN_CONFLUENCE = False
+
+# --- Filtre de session (heures de forte liquidité, en UTC) ---
+# Abidjan est en UTC+0 toute l'année (pas de changement d'heure), ces bornes
+# correspondent directement à l'heure locale. Couvre la pré-ouverture de
+# Londres jusqu'à la clôture de New York.
+SESSION_FILTER_ENABLED = True
+SESSION_START_HOUR_UTC = 7
+SESSION_END_HOUR_UTC = 21
